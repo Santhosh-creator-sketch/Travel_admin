@@ -7,187 +7,193 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
-
     <style>
         body {
             background: #f8f9fa;
             font-family: 'Poppins', sans-serif;
             padding: 20px;
         }
-
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 15px;
             box-shadow: 0px 5px 15px rgba(0, 0, 255, 0.2);
-            text-align: center;
         }
-
         h2 {
             color: #007bff;
             font-weight: bold;
         }
-
-        .btn-primary {
-            background-color: #007bff;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
         .package-item {
             background: white;
             border: 1px solid #ddd;
             border-radius: 10px;
             padding: 15px;
             transition: all 0.3s ease-in-out;
+            text-align: center;
         }
-
         .package-item img {
             width: 100%;
-            height: 150px;
+            height: 180px;
             object-fit: cover;
             border-radius: 10px;
         }
-
-        .btn-warning {
-            background-color: #ffc107;
-            border: none;
+        .package-item:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 255, 0.1);
+            transform: translateY(-5px);
         }
-
-        .btn-danger {
-            background-color: #dc3545;
-            border: none;
-        }
-
-
-        /* Footer */
-        .footer {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #007bff;
-        }
-
-        .footer a {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Instagram Icon */
-        .instagram-link {
-            display: flex;
-            justify-content: center;
+        #image-preview {
+            display: none;
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
             margin-top: 10px;
-        }
-
-        .instagram-link a {
-            font-size: 24px;
-            color: #007bff;
-            transition: 0.3s;
-        }
-
-        .instagram-link a:hover {
-            color: #0056b3;
-            transform: scale(1.1);
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- Back to Dashboard Button -->
-        <div class="text-start mb-3">
-            <a href="dashboard.html" class="btn btn-success">&larr; Back to Dashboard</a>
-        </div>
-
-        <h2 class="mb-4">Manage Packages</h2>
-
-        <div class="mb-4">
-            <input type="hidden" id="package-id">
-            <input type="text" id="package-name" class="form-control mb-2" placeholder="Package Name">
-            <input type="number" id="package-price" class="form-control mb-2" placeholder="Price">
-            <input type="file" id="package-image" class="form-control mb-2">
-            <button class="btn btn-primary w-100" onclick="savePackage()">Save Package</button>
-        </div>
-
-        <h2>Package List</h2>
-        <p id="loading" class="text-center">Loading packages...</p>
-        <div id="packages-container" class="row g-3"></div>
+<div class="container">
+    <!-- Back to Dashboard Button -->
+    <div class="text-start mb-3">
+        <a href="dashboard.html" class="btn btn-success">&larr; Back to Dashboard</a>
     </div>
 
-    <script>
-        const BASE_URL = "https://travel-backend-h8zs.onrender.com/api/packages";
+    <h2 class="mb-4">Manage Packages</h2>
 
-        async function loadPackages() {
-            document.getElementById("loading").style.display = "block";
+    <!-- Package Form -->
+    <div class="mb-4">
+        <input type="hidden" id="package-id">
+        <input type="text" id="package-name" class="form-control mb-2" placeholder="Package Name">
+        <input type="number" id="package-price" class="form-control mb-2" placeholder="Price">
+        <input type="file" id="package-image" class="form-control mb-2" accept="image/*" onchange="previewImage(event)">
+        <img id="image-preview" src="" alt="Image Preview">
+        <button class="btn btn-primary mt-2" onclick="savePackage()">Save Package</button>
+    </div>
+
+    <!-- Package List -->
+    <h2>Package List</h2>
+    <p id="loading" class="text-center">Loading packages...</p>
+    <div id="packages-container" class="row g-3"></div>
+</div>
+
+<script>
+    const BASE_URL = "https://travel-backend-h8zs.onrender.com/api/packages";
+
+    async function loadPackages() {
+        document.getElementById("loading").style.display = "block";
+        
+        try {
             const response = await fetch(BASE_URL);
             const packages = await response.json();
+            
             document.getElementById("loading").style.display = "none";
 
             const packagesContainer = document.getElementById("packages-container");
-            packagesContainer.innerHTML = packages.map(pkg =>
-                `<div class="col-12 col-sm-6 col-md-4 package-item">
-                    <img src="https://travel-backend-h8zs.onrender.com${pkg.imageUrl}" alt="Package Image">
-                    <p><strong>${pkg.name}</strong> - ₹${pkg.price}</p>
-                    <button class="btn btn-warning btn-sm w-100 mt-2" onclick="editPackage('${pkg._id}', '${pkg.name}', '${pkg.price}')">Edit</button>
-                    <button class="btn btn-danger btn-sm w-100 mt-2" onclick="deletePackage('${pkg._id}')">Delete</button>
-                </div>`
-            ).join("");
+            packagesContainer.innerHTML = packages.map(pkg => {
+                const imageUrl = pkg.imageUrl.startsWith("http") 
+                    ? pkg.imageUrl 
+                    : `https://travel-backend-h8zs.onrender.com/uploads/${pkg.imageUrl}`;
+
+                return `
+                    <div class="col-12 col-sm-6 col-md-4 package-item">
+                        <img src="${imageUrl}" alt="Package Image" 
+                            onerror="this.onerror=null;this.src='fallback-image.jpg';">
+                        <p><strong>${pkg.name}</strong> - ₹${pkg.price}</p>
+                        <button class="btn btn-warning btn-sm mt-2" onclick="editPackage('${pkg._id}', '${pkg.name}', '${pkg.price}', '${imageUrl}')">Edit</button>
+                        <button class="btn btn-danger btn-sm mt-2" onclick="deletePackage('${pkg._id}')">Delete</button>
+                    </div>`;
+            }).join("");
+
+        } catch (error) {
+            console.error("Failed to load packages", error);
+            document.getElementById("loading").innerText = "Failed to load packages.";
+        }
+    }
+
+    function editPackage(id, name, price, imageUrl) {
+        document.getElementById("package-id").value = id;
+        document.getElementById("package-name").value = name;
+        document.getElementById("package-price").value = price;
+
+        if (imageUrl) {
+            document.getElementById("image-preview").src = imageUrl;
+            document.getElementById("image-preview").style.display = "block";
+        } else {
+            document.getElementById("image-preview").style.display = "none";
+        }
+    }
+
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const preview = document.getElementById("image-preview");
+            preview.src = reader.result;
+            preview.style.display = "block";
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    async function savePackage() {
+        const id = document.getElementById("package-id").value;
+        const name = document.getElementById("package-name").value.trim();
+        const price = document.getElementById("package-price").value.trim();
+        const file = document.getElementById("package-image").files[0];
+
+        if (!name || !price) {
+            alert("Please fill all fields.");
+            return;
         }
 
-        function editPackage(id, name, price) {
-            document.getElementById("package-id").value = id;
-            document.getElementById("package-name").value = name;
-            document.getElementById("package-price").value = price;
-        }
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("price", price);
+        if (file) formData.append("image", file);
 
-        async function savePackage() {
-            const id = document.getElementById("package-id").value;
-            const name = document.getElementById("package-name").value.trim();
-            const price = document.getElementById("package-price").value.trim();
-            const file = document.getElementById("package-image").files[0];
-
-            if (!name || !price) return alert("Please fill all fields");
-
-            const formData = new FormData();
-            formData.append("name", name);
-            formData.append("price", price);
-            if (file) formData.append("image", file);
-
+        try {
             if (id) {
-                await fetch(`${BASE_URL}/${id}`, { method: "PUT", body: formData });
+                await fetch(`${BASE_URL}/${id}`, {
+                    method: "PUT",
+                    body: formData
+                });
             } else {
-                await fetch(`${BASE_URL}/add`, { method: "POST", body: formData });
+                await fetch(`${BASE_URL}/add`, {
+                    method: "POST",
+                    body: formData
+                });
             }
 
             document.getElementById("package-id").value = "";
             document.getElementById("package-name").value = "";
             document.getElementById("package-price").value = "";
             document.getElementById("package-image").value = "";
+            document.getElementById("image-preview").style.display = "none";
 
             loadPackages();
-        }
 
-        async function deletePackage(id) {
+        } catch (error) {
+            console.error("Error saving package:", error);
+            alert("Failed to save package.");
+        }
+    }
+
+    async function deletePackage(id) {
+        if (!confirm("Are you sure you want to delete this package?")) return;
+
+        try {
             await fetch(`${BASE_URL}/${id}`, { method: "DELETE" });
             loadPackages();
+        } catch (error) {
+            console.error("Error deleting package:", error);
+            alert("Failed to delete package.");
         }
+    }
 
-        loadPackages();
-    </script>
-<footer class="text-center mt-4 p-3 bg-light fixed-bottom">
-    <p class="mb-1">Developed by <strong>Santhosh</strong></p>
-    <a href="https://www.instagram.com/your_instagram" target="_blank" class="text-dark text-decoration-none">
-        <i class="fab fa-instagram fa-lg"></i> Follow on Instagram
-    </a>
-</footer>
+    loadPackages();
+</script>
+
+
+
 </body>
 </html>

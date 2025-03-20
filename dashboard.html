@@ -69,7 +69,7 @@
 
         /* Logout Button */
         .btn-logout {
-            background: #007bff;
+            background: #dc3545;
             color: white;
             font-weight: bold;
             border-radius: 8px;
@@ -81,7 +81,7 @@
         }
 
         .btn-logout:hover {
-            background: #0056b3;
+            background: #b02a37;
             transform: scale(1.05);
         }
 
@@ -129,24 +129,25 @@
         <a href="package.html" class="dashboard-link"><i class="fas fa-box"></i> Manage Packages</a>
         <a href="message.html" class="dashboard-link"><i class="fas fa-envelope"></i> View Messages</a>
         <button class="btn-logout mt-3" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
-
-        
+    </div>
 
     <!-- JavaScript -->
     <script>
         function logout() {
-            localStorage.removeItem("token");
-            alert("You have been logged out successfully!");
-            window.location.href = "index.html";
+            if (confirm("Are you sure you want to log out?")) {
+                localStorage.removeItem("token"); // Remove authentication token
+                alert("You have been logged out successfully!");
+                window.location.href = "index.html"; // Redirect to login page
+            }
         }
     </script>
 
-<footer class="text-center mt-4 p-3 bg-light fixed-bottom">
-    <p class="mb-1">Developed by <strong>Santhosh</strong></p>
-    <a href="https://www.instagram.com/your_instagram" target="_blank" class="text-dark text-decoration-none">
-        <i class="fab fa-instagram fa-lg"></i> Follow on Instagram
-    </a>
-</footer>
+    <footer class="text-center mt-4 p-3 bg-light fixed-bottom">
+        <p class="mb-1">Developed by <strong>Santhosh</strong></p>
+        <a href="https://www.instagram.com/your_instagram" target="_blank" class="text-dark text-decoration-none">
+            <i class="fab fa-instagram fa-lg"></i> Follow on Instagram
+        </a>
+    </footer>
 
 </body>
 </html>
